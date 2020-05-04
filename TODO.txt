@@ -1,0 +1,11 @@
+- Make kafka sidecar options compatible with generic consumer/reuse consumer options instead of repeating them
+- Move integration tests to corresponding modules
+- Sync calls failure handling The current agreed strategy is:
+                              for async inputs from Kafka we let it repeat and fail after configurable amount of repetitions which should be reported as an alarm
+                              for sync inputs we report failures to the sync caller if the other side is not available so we let the caller repeat the action if needed (include POD LM)
+                              This should be implemented and tested for all so far implemented endpoints
+- Check if the payload deserialization logic of inputs is outside of the executors
+- Check transactions on etcd v3 API for atomic key storage
+- Check if etcd leaves namespaces/keys after testing
+- Merge kafka and sidecar logic into a single module
+

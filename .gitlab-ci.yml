@@ -1,0 +1,22 @@
+stages:
+  - all
+
+sca-golint:
+  stage: all
+  image: deploy.a4.dtlabs.de/env/sca-common:main-master
+  script:
+  - sca golint -set_exit_status $(go list ./... | grep -v /vendor/)
+  allow_failure: true
+
+sast-gosec:
+  stage: all
+  image: deploy.a4.dtlabs.de/env/sca-common:main-master
+  script:
+  - sca gosec ./...
+  allow_failure: true
+
+unit-test:
+    stage: all
+    image: deploy.a4.dtlabs.de/env/sca-common:main-master
+    script:
+    - make test
