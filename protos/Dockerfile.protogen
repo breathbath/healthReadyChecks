@@ -1,4 +1,4 @@
-FROM golang:1.12.9-stretch as builder
+FROM golang:1.14.0-stretch as builder
 
 ENV INSTALL_DEPS \
   ca-certificates \

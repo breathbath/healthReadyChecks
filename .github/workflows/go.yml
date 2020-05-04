@@ -65,6 +65,7 @@ jobs:
         uses: grandcolline/golang-github-actions@v1.1.0
         with:
           run: staticcheck
+          flags: "-exclude=G104"
 
   sec:
     name: Sec
