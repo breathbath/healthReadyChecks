@@ -30,5 +30,25 @@ jobs:
       with:
         run: lint
 
+    - name: Gosec
+      uses: grandcolline/golang-github-actions@v1.1.0
+      with:
+        run: sec
+
+    - name: Staticcheck
+      uses: grandcolline/golang-github-actions@v1.1.0
+      with:
+        run: staticcheck
+
+    - name: GoVet
+      uses: grandcolline/golang-github-actions@v1.1.0
+      with:
+        run: vet
+
+    - name: GoFmt
+      uses: grandcolline/golang-github-actions@v1.1.0
+      with:
+        run: fmt
+
     - name: Test
       run: go test -race -v ./...
