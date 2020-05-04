@@ -188,19 +188,19 @@ func ExampleServer_Start() {
 	// 3d sending attempt, the server should not be healthy, as we have 2 errors within a minute: I am not healthy true
 }
 
-//DbMock simulates a db backend which will be available only after 1 connection attempt
-type DbMock struct {
+//DBMock simulates a db backend which will be available only after 1 connection attempt
+type DBMock struct {
 	attemptsCount int
 }
 
 //IsAlive simulates health check for a remote db server, if requested for the 2nd time will return true
-func (dm *DbMock) IsAlive() bool {
+func (dm *DBMock) IsAlive() bool {
 	dm.attemptsCount++
 	return dm.attemptsCount > 1
 }
 
 //Insert simulates insertion of new data to db in fact it does nothing as it's just an example
-func (dm *DbMock) Insert() error {
+func (dm *DBMock) Insert() error {
 	return nil
 }
 
@@ -222,9 +222,9 @@ func (c *Cache) Read() (bool, error) {
 	return true, nil
 }
 
-//ClientAPI simulates the end API server which depends on DbMock and Cache so if they both are not healthy then ClientAPI will fail ready check
+//ClientAPI simulates the end API server which depends on DBMock and Cache so if they both are not healthy then ClientAPI will fail ready check
 type ClientAPI struct {
-	DB    *DbMock
+	DB    *DBMock
 	Cache *Cache
 }
 
@@ -248,19 +248,19 @@ func (ca ClientAPI) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 //Shows how to use ready http handler which can be added to any http server as part of internal implementation (vs sidecar mode)
 func ExampleServer_NewReadyHandler() {
 	//having declared models
-	////DbMock simulates a db backend which will be available only after 1 connection attempt
-	//type DbMock struct {
+	////DBMock simulates a db backend which will be available only after 1 connection attempt
+	//type DBMock struct {
 	//	attemptsCount int
 	//}
 	//
 	////IsAlive simulates health check for a remote db server, if requested for the 2nd time will return true
-	//func (dm *DbMock) IsAlive() bool {
+	//func (dm *DBMock) IsAlive() bool {
 	//	dm.attemptsCount++
 	//	return dm.attemptsCount > 1
 	//}
 	//
 	////Insert simulates insertion of new data to db in fact it does nothing as it's just an example
-	//func (dm *DbMock) Insert() error {
+	//func (dm *DBMock) Insert() error {
 	//	return nil
 	//}
 	//
@@ -282,9 +282,9 @@ func ExampleServer_NewReadyHandler() {
 	//	return true, nil
 	//}
 	//
-	////ClientAPI simulates the end API server which depends on DbMock and Cache so if they both are not healthy then ClientAPI will fail ready check
+	////ClientAPI simulates the end API server which depends on DBMock and Cache so if they both are not healthy then ClientAPI will fail ready check
 	//type ClientAPI struct {
-	//	DB *DbMock
+	//	DB *DBMock
 	//	Cache *Cache
 	//}
 	//
@@ -305,7 +305,7 @@ func ExampleServer_NewReadyHandler() {
 	//	}
 	//}
 
-	buildReadyHandler := func (db *DbMock, cache *Cache) http.Handler {
+	buildReadyHandler := func (db *DBMock, cache *Cache) http.Handler {
 		//we create our ready checks against db and cache so client API cannot be ready if dependant services are still pending
 		readyChecks := []ready.Test{
 	{
@@ -334,7 +334,7 @@ func ExampleServer_NewReadyHandler() {
 	}
 
 	//starts simulated client API server, in this case ready check will be part of the main server
-	startClientAPIHTTP := func (db *DbMock, cache *Cache, readyHandler http.Handler) *httptest.Server {
+	startClientAPIHTTP := func (db *DBMock, cache *Cache, readyHandler http.Handler) *httptest.Server {
 		handleFunc := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/clients" {
 		clientAPI := ClientAPI{DB: db, Cache: cache}
@@ -355,7 +355,7 @@ func ExampleServer_NewReadyHandler() {
 		return baseSrv
 	}
 
-	db := &DbMock{}
+	db := &DBMock{}
 	cache := &Cache{}
 
 	readyHandler := buildReadyHandler(db, cache)
@@ -367,15 +367,15 @@ func ExampleServer_NewReadyHandler() {
 	if err1 != nil {
 		log.Fatal(err1)
 	}
-	fmt.Printf("1st ready check, client api should not be ready as DbMock isn't healthy yet: I am not ready: %v\n", resp1.StatusCode != 200)
+	fmt.Printf("1st ready check, client api should not be ready as DBMock isn't healthy yet: I am not ready: %v\n", resp1.StatusCode != 200)
 
 	resp2, err2 := http.Get("http://" + apiAddr + "/readyz")
 	if err2 != nil {
 		log.Fatal(err2)
 	}
-	fmt.Printf("2nd ready check, client api should be ready as DbMock is healthy and Cache is healthy always: I am ready: %v\n", resp2.StatusCode == 200)
+	fmt.Printf("2nd ready check, client api should be ready as DBMock is healthy and Cache is healthy always: I am ready: %v\n", resp2.StatusCode == 200)
 
 	// Output:
-	// 1st ready check, client api should not be ready as DbMock isn't healthy yet: I am not ready: true
-	// 2nd ready check, client api should be ready as DbMock is healthy and Cache is healthy always: I am ready: true
+	// 1st ready check, client api should not be ready as DBMock isn't healthy yet: I am not ready: true
+	// 2nd ready check, client api should be ready as DBMock is healthy and Cache is healthy always: I am ready: true
 }
