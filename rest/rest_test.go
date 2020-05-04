@@ -163,9 +163,9 @@ func callAPI(addr string) (*http.Response, error) {
 	}
 
 	defer func() {
-		err := resp.Body.Close()
-		if err != nil {
-			log.Fatal(err)
+		er := resp.Body.Close()
+		if er != nil {
+			log.Fatal(er)
 		}
 	}()
 
