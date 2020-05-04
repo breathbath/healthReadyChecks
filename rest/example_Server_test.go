@@ -123,7 +123,12 @@ func ExampleServer_Start() {
 		if err != nil {
 			return err
 		}
-		defer resp.Body.Close()
+		defer func() {
+			err := resp.Body.Close()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}()
 
 		return nil
 	}

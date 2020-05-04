@@ -9,7 +9,7 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
-    name:
+    name: Tests
     steps:
     - name: Set up Go 1.x
       uses: actions/setup-go@v2
@@ -31,24 +31,49 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
-      - name: Errcheck
+      - name: check
         uses: grandcolline/golang-github-actions@v1.1.0
         with:
           run: errcheck
-      - name: Lint
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: check
         uses: grandcolline/golang-github-actions@v1.1.0
         with:
           run: lint
-      - name: Shadow
+
+  shadow:
+    name: Shadow
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: check
         uses: grandcolline/golang-github-actions@v1.1.0
         with:
           run: shadow
-      - name: StaticCheck
+
+  staticcheck:
+    name: StaticCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: check
         uses: grandcolline/golang-github-actions@v1.1.0
         with:
           run: staticcheck
-      - name: Sec
+
+  sec:
+    name: Sec
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: check
         uses: grandcolline/golang-github-actions@v1.1.0
         with:
           run: sec
+          flags: "-exclude=G104"
 

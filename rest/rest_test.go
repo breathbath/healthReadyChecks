@@ -10,6 +10,7 @@ import (
 	"github.com/breathbath/healthReadyChecks/ready"
 	"github.com/breathbath/healthReadyChecks/sleep"
 	"github.com/stretchr/testify/assert"
+	"log"
 	"net/http"
 	"strings"
 	"testing"
@@ -156,10 +157,17 @@ func callAPI(addr string) (resp *http.Response, err error) {
 
 	cl := http.Client{}
 	resp, err = cl.Do(req)
+
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	return resp, err
 }
