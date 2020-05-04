@@ -2,10 +2,10 @@ package grpc
 
 import (
 	"context"
-	"github.com/breathbath/healthz/health"
-	"github.com/breathbath/healthz/logging"
-	readyProto "github.com/breathbath/healthz/protos/go"
-	"github.com/breathbath/healthz/ready"
+	"github.com/breathbath/healthReadyChecks/health"
+	"github.com/breathbath/healthReadyChecks/logging"
+	readyProto "github.com/breathbath/healthReadyChecks/protos/go"
+	"github.com/breathbath/healthReadyChecks/ready"
 	"google.golang.org/grpc/codes"
 	healthProto "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"

@@ -3,7 +3,7 @@ package ready
 import (
 	"context"
 	"errors"
-	"github.com/breathbath/healthz/sleep"
+	"github.com/breathbath/healthReadyChecks/sleep"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"

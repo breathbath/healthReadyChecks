@@ -1,4 +1,4 @@
-module github.com/breathbath/healthz
+module github.com/breathbath/healthReadyChecks
 
 go 1.14
 

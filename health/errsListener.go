@@ -3,8 +3,8 @@ package health
 import (
 	"context"
 	"fmt"
-	"github.com/breathbath/healthz/errs"
-	"github.com/breathbath/healthz/logging"
+	"github.com/breathbath/healthReadyChecks/errs"
+	"github.com/breathbath/healthReadyChecks/logging"
 	"sync"
 	"time"
 )

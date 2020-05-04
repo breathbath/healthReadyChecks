@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/breathbath/healthz/errs"
+	"github.com/breathbath/healthReadyChecks/errs"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"

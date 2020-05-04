@@ -3,8 +3,8 @@ package grpc
 import (
 	"context"
 	"fmt"
-	"github.com/breathbath/healthz/logging"
-	readyProto "github.com/breathbath/healthz/protos/go"
+	"github.com/breathbath/healthReadyChecks/logging"
+	readyProto "github.com/breathbath/healthReadyChecks/protos/go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	healthProto "google.golang.org/grpc/health/grpc_health_v1"

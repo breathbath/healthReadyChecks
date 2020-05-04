@@ -1,7 +1,7 @@
 package sleep
 
 import (
-	"github.com/breathbath/healthz/logging"
+	"github.com/breathbath/healthReadyChecks/logging"
 	"time"
 )
 

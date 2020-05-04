@@ -105,7 +105,7 @@ For REST APIs you can use following k8s manifest:
 
 For GRPC APIs you first need to create a cli interface:
             
-            import "github.com/breathbath/healthz"
+            import "github.com/breathbath/healthReadyChecks"
             
             func main() {
                 err := grpc.CheckHealth(address, "My microservice health")
@@ -133,7 +133,6 @@ Add to k8s manifest
                               - "ready-grpc"
                       initialDelaySeconds: 8
                       periodSeconds: 20            
-
 
 ### Running tests ###
 

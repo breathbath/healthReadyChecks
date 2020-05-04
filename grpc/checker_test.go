@@ -2,7 +2,7 @@ package grpc
 
 import (
 	"fmt"
-	readyProto "github.com/breathbath/healthz/protos/go"
+	readyProto "github.com/breathbath/healthReadyChecks/protos/go"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	healthProto "google.golang.org/grpc/health/grpc_health_v1"
