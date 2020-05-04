@@ -224,7 +224,7 @@ func (c *Cache) Read() (bool, error) {
 
 //ClientAPI simulates the end API server which depends on DbMock and Cache so if they both are not healthy then ClientAPI will fail ready check
 type ClientAPI struct {
-	Db *DbMock
+	DB    *DbMock
 	Cache *Cache
 }
 
@@ -239,7 +239,7 @@ func (ca ClientAPI) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = ca.Db.Insert()
+	err = ca.DB.Insert()
 	if err != nil {
 		log.Panic(err)
 	}
@@ -284,7 +284,7 @@ func ExampleServer_NewReadyHandler() {
 	//
 	////ClientAPI simulates the end API server which depends on DbMock and Cache so if they both are not healthy then ClientAPI will fail ready check
 	//type ClientAPI struct {
-	//	Db *DbMock
+	//	DB *DbMock
 	//	Cache *Cache
 	//}
 	//
@@ -299,7 +299,7 @@ func ExampleServer_NewReadyHandler() {
 	//		return
 	//	}
 	//
-	//	err = ca.Db.Insert()
+	//	err = ca.DB.Insert()
 	//	if err != nil {
 	//		log.Panic(err)
 	//	}
@@ -317,7 +317,7 @@ func ExampleServer_NewReadyHandler() {
 
 		return nil
 	},
-		Name: "Db Ready Check",
+		Name: "DB Ready Check",
 	},
 	{
 		TestFunc: func() error {
@@ -337,7 +337,7 @@ func ExampleServer_NewReadyHandler() {
 	startClientAPIHTTP := func (db *DbMock, cache *Cache, readyHandler http.Handler) *httptest.Server {
 		handleFunc := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/clients" {
-		clientAPI := ClientAPI{Db: db, Cache: cache}
+		clientAPI := ClientAPI{DB: db, Cache: cache}
 		clientAPI.ServeHTTP(rw, r)
 		return
 	}
