@@ -21,5 +21,5 @@ test:
 protoc:
 	docker build -t local/protogen -f protos/Dockerfile.protogen .
 	docker run --name protogen local/protogen
-	docker cp protogen:/home/healthz/go ./protos
+	docker cp protogen:/home/protos/go ./protos
 	docker rm protogen

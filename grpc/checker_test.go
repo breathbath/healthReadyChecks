@@ -59,18 +59,18 @@ func TestHealthCheckerWrongServerImplementation(t *testing.T) {
 
 	errChan := make(chan error)
 	go func(l net.Listener, s *grpc.Server) {
-		if err := s.Serve(l); err != nil {
-			errChan <- err
+		if er := s.Serve(l); er != nil {
+			errChan <- er
 		}
 	}(lis, baseSrv)
 	select {
-	case err := <-errChan:
+	case err = <-errChan:
 		assert.NoError(t, err)
 	case <-time.After(time.Millisecond * 100):
 	}
 
 	err = CheckHealth(lis.Addr().String(), "some health")
-	assert.EqualError(t, err, fmt.Sprintf("GRPC Health server of some health does not implement the grpc health protocol"))
+	assert.EqualError(t, err, "GRPC Health server of some health does not implement the grpc health protocol")
 }
 
 func TestHealthCheckerWrongAddress(t *testing.T) {
@@ -138,18 +138,18 @@ func TestReadyCheckerWrongServerImplementation(t *testing.T) {
 
 	errChan := make(chan error)
 	go func(l net.Listener, s *grpc.Server) {
-		if err := s.Serve(l); err != nil {
-			errChan <- err
+		if er := s.Serve(l); er != nil {
+			errChan <- er
 		}
 	}(lis, baseSrv)
 	select {
-	case err := <-errChan:
+	case err = <-errChan:
 		assert.NoError(t, err)
 	case <-time.After(time.Millisecond * 100):
 	}
 
 	err = CheckReady(lis.Addr().String(), "some ready")
-	assert.EqualError(t, err, fmt.Sprintf("GRPC Ready server of some ready failed: rpc error: code = Unimplemented desc = unknown service readyProto.Ready"))
+	assert.EqualError(t, err, "GRPC Ready server of some ready failed: rpc error: code = Unimplemented desc = unknown service readyProto.Ready")
 }
 
 func startGRPC(srv Server) (addr string, baseSrv *grpc.Server, err error) {

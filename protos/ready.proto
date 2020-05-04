@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package readyProto;
 
+option go_package = "github.com/breathbath/healthReadyChecks/protos";
+
 message ReadyRequest {
     string service = 1;
 }

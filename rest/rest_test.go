@@ -145,7 +145,7 @@ func TestNotEquippedServer(t *testing.T) {
 	assert.EqualError(t, err, "neither ready nor health logic was initialised")
 }
 
-func callAPI(addr string) (resp *http.Response, err error) {
+func callAPI(addr string) (*http.Response, error) {
 	req, err := http.NewRequest(
 		http.MethodGet,
 		addr,
@@ -156,7 +156,7 @@ func callAPI(addr string) (resp *http.Response, err error) {
 	}
 
 	cl := http.Client{}
-	resp, err = cl.Do(req)
+	resp, err := cl.Do(req)
 
 	if err != nil {
 		return nil, err

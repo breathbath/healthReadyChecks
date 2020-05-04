@@ -15,9 +15,9 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # protoc
-ENV PROTOC_VER=3.9.1
-ENV PROTOC_REL=protoc-"${PROTOC_VER}"-linux-x86_64.zip
-RUN wget -q https://github.com/google/protobuf/releases/download/v"${PROTOC_VER}/${PROTOC_REL}" \
+ENV PROTOC_VER=3.11.4
+ENV PROTOC_REL=protoc-${PROTOC_VER}-linux-x86_64.zip
+RUN wget -q https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VER}/${PROTOC_REL} \
   && unzip ${PROTOC_REL} -d protoc \
   && mv protoc /usr/local \
   && ln -s /usr/local/protoc/bin/protoc /usr/local/bin
@@ -25,19 +25,11 @@ RUN wget -q https://github.com/google/protobuf/releases/download/v"${PROTOC_VER}
 ENV GO111MODULE on
 
 # protoc-gen-go
-ENV PROTOC_GEN_GO_VERSION=v1.3.2
-RUN go get -u github.com/golang/protobuf/protoc-gen-go@$PROTOC_GEN_GO_VERSION
-
-# protoc-gen-grpc-gateway + protoc-gen-swagger
-ENV PROTOC_GEN_GRPC_GATEWAY_VERSION v1.9.6
-RUN go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@$PROTOC_GEN_GRPC_GATEWAY_VERSION
-RUN go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@$PROTOC_GEN_GRPC_GATEWAY_VERSION
-
-RUN mkdir -p /go/src/github.com/grpc-ecosystem && cd /go/src/github.com/grpc-ecosystem && \
-    git clone --branch $PROTOC_GEN_GRPC_GATEWAY_VERSION --single-branch --depth 1 https://github.com/grpc-ecosystem/grpc-gateway.git
+RUN go get github.com/golang/protobuf/protoc-gen-go
+ENV PATH="$PATH:$(go env GOPATH)/bin"
 
 # download voltha-protos
-WORKDIR /home/healthz
-RUN mkdir /home/healthz/go
-COPY ./protos ./protos
-RUN protoc  -I protos/ --include_imports --include_source_info --descriptor_set_out=healthz.pb --go_out=plugins=grpc:/home/healthz/go protos/*.proto
+WORKDIR /home/protos
+RUN mkdir /home/protos/go
+COPY ./protos /home/protos
+RUN protoc --proto_path=/home/protos --go_opt=paths=source_relative --go_out=plugins=grpc:/home/protos/go /home/protos/*.proto
