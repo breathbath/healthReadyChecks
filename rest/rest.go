@@ -49,42 +49,12 @@ func (s Server) Start(ctx context.Context, targetPort int) error {
 
 	if s.isWithHealth {
 		logging.L.InfoF("Will start health listener with healthz api")
-		router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			isHealthy, unhealthyReason := s.healthChecker.IsHealthy()
-			if isHealthy {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
-
-			w.WriteHeader(http.StatusInternalServerError)
-			_, err := w.Write([]byte(unhealthyReason))
-			if err != nil {
-				logging.L.ErrorF("Failed to write body: %v", err)
-			}
-		}))
+		router.Handle("/healthz", NewHealthHandler(s.healthChecker))
 	}
 
 	if s.isWithReady {
 		logging.L.InfoF("Will start ready listener with readyz api")
-		router.Handle("/readyz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			readyCtx, cancelReady := context.WithTimeout(context.Background(), s.readyTimeout)
-			defer cancelReady()
-
-			isReady, err := s.readyChecker.IsReady(readyCtx)
-			if isReady {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
-
-			w.WriteHeader(http.StatusInternalServerError)
-			if err == nil {
-				return
-			}
-			_, err = w.Write([]byte(err.Error()))
-			if err != nil {
-				logging.L.ErrorF("Failed to write body: %v", err)
-			}
-		}))
+		router.Handle("/readyz", NewReadyHandler(s.readyTimeout, s.readyChecker))
 	}
 
 	addr := fmt.Sprintf(":%d", targetPort)
@@ -108,4 +78,44 @@ func (s Server) Start(ctx context.Context, targetPort int) error {
 	}(httpServer, ctx)
 
 	return httpServer.ListenAndServe()
+}
+
+//NewReadyHandler gives http.Handler implementation for readiness checks
+func NewReadyHandler(readyTimeout time.Duration, readyChecker ready.Checker) http.Handler{
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		readyCtx, cancelReady := context.WithTimeout(context.Background(), readyTimeout)
+		defer cancelReady()
+
+		isReady, err := readyChecker.IsReady(readyCtx)
+		if isReady {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		w.WriteHeader(http.StatusInternalServerError)
+		if err == nil {
+			return
+		}
+		_, err = w.Write([]byte(err.Error()))
+		if err != nil {
+			logging.L.ErrorF("Failed to write body: %v", err)
+		}
+	})
+}
+
+//NewHealthHandler gives http.Handler implementation for health checks
+func NewHealthHandler(healthChecker health.Checker) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		isHealthy, unhealthyReason := healthChecker.IsHealthy()
+		if isHealthy {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		w.WriteHeader(http.StatusInternalServerError)
+		_, err := w.Write([]byte(unhealthyReason))
+		if err != nil {
+			logging.L.ErrorF("Failed to write body: %v", err)
+		}
+	})
 }

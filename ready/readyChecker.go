@@ -36,7 +36,7 @@ type TestChecker struct {
 	sleeper sleep.Sleeper
 }
 
-//NewTestChecker constructor
+//NewTestChecker constructor, will try maxRetries and sleep sleepInterval with the sleep.Sleeper before failing ready check
 func NewTestChecker(tests []Test, maxRetries int, sleepInterval time.Duration, sleeper sleep.Sleeper) TestChecker {
 	return TestChecker{tests: tests, maxRetries: maxRetries, sleepInterval: sleepInterval, sleeper: sleeper}
 }
