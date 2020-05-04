@@ -80,7 +80,7 @@ func ExampleServer_Start() {
 	//}
 
 	//starts health server as sidecar with the shared errors stream with the main server, it could be also started as a part of the file server
-	startHealthServerHttp := func(ctx context.Context, errStream errs.ErrStream, targetPort, maxErrorsCount int) {
+	startHealthServerHTTP := func(ctx context.Context, errStream errs.ErrStream, targetPort, maxErrorsCount int) {
 		//we initialise errors listener which will report bad health if errStream will receive more than 1 error per minute
 		healthChecker := health.NewErrsListener(maxErrorsCount, time.Minute, errStream)
 		go healthChecker.Start(ctx)
@@ -95,7 +95,7 @@ func ExampleServer_Start() {
 	}
 
 	//starts simulated file server
-	startFileServerHttp := func(errStream errs.ErrStream) *httptest.Server {
+	startFileServerHTTP := func(errStream errs.ErrStream) *httptest.Server {
 		cloudStorage := &CloudStorageWriterMock{}
 		apiHandler := FileStorageAPI{
 			errStream: errStream,
@@ -136,10 +136,10 @@ func ExampleServer_Start() {
 	healthTargetPort := 8033
 	maxErrorsCountPerMinute := 1
 
-	startHealthServerHttp(ctx, errStream, healthTargetPort, maxErrorsCountPerMinute)
+	startHealthServerHTTP(ctx, errStream, healthTargetPort, maxErrorsCountPerMinute)
 
 	//we've started server which will try to store posted body data in a simulated cloud storage and will start failing after 1 successful requests which should cause the health failure
-	srv := startFileServerHttp(errStream)
+	srv := startFileServerHTTP(errStream)
 	defer srv.Close()
 	fileServerAddress := srv.Listener.Addr().String()
 	healthServerAddress := fmt.Sprintf("http://127.0.0.1:%d", healthTargetPort)
@@ -217,14 +217,14 @@ func (c *Cache) Read() (bool, error) {
 	return true, nil
 }
 
-//ClientApi simulates the end API server which depends on DbMock and Cache so if they both are not healthy then ClientApi will fail ready check
-type ClientApi struct {
+//ClientAPI simulates the end API server which depends on DbMock and Cache so if they both are not healthy then ClientAPI will fail ready check
+type ClientAPI struct {
 	Db *DbMock
 	Cache *Cache
 }
 
 //ServeHTTP implements http.Handler interface, in fact has no meaning for readiness checks but shows a possible implementation for some db/cache driven http API
-func (ca ClientApi) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+func (ca ClientAPI) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	isFound, err := ca.Cache.Read()
 	if err != nil {
 		log.Panic(err)
@@ -277,14 +277,14 @@ func ExampleServer_NewReadyHandler() {
 	//	return true, nil
 	//}
 	//
-	////ClientApi simulates the end API server which depends on DbMock and Cache so if they both are not healthy then ClientApi will fail ready check
-	//type ClientApi struct {
+	////ClientAPI simulates the end API server which depends on DbMock and Cache so if they both are not healthy then ClientAPI will fail ready check
+	//type ClientAPI struct {
 	//	Db *DbMock
 	//	Cache *Cache
 	//}
 	//
 	//ServeHTTP implements http.Handler interface, in fact has no meaning for readiness checks but shows a possible implementation for some db/cache driven http API
-	//func (ca ClientApi) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	//func (ca ClientAPI) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	//	isFound, err := ca.Cache.Read()
 	//	if err != nil {
 	//		log.Panic(err)
@@ -323,16 +323,16 @@ func ExampleServer_NewReadyHandler() {
 	}
 
 		readyChecker := ready.NewTestChecker(readyChecks, 1, time.Millisecond, sleep.RuntimeSleeper{})
-		readyHttpHandler := NewReadyHandler(time.Second, readyChecker)
+		readyHTTPHandler := NewReadyHandler(time.Second, readyChecker)
 
-		return readyHttpHandler
+		return readyHTTPHandler
 	}
 
 	//starts simulated client API server, in this case ready check will be part of the main server
-	startClientApiHttp := func (db *DbMock, cache *Cache, readyHandler http.Handler) *httptest.Server {
+	startClientAPIHTTP := func (db *DbMock, cache *Cache, readyHandler http.Handler) *httptest.Server {
 		handleFunc := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/clients" {
-		clientAPI := ClientApi{Db: db, Cache: cache}
+		clientAPI := ClientAPI{Db: db, Cache: cache}
 		clientAPI.ServeHTTP(rw, r)
 		return
 	}
@@ -355,7 +355,7 @@ func ExampleServer_NewReadyHandler() {
 
 	readyHandler := buildReadyHandler(db, cache)
 
-	srv := startClientApiHttp(db, cache, readyHandler)
+	srv := startClientAPIHTTP(db, cache, readyHandler)
 	apiAddr := srv.Listener.Addr().String()
 
 	resp1, err1 := http.Get("http://" + apiAddr + "/readyz")
