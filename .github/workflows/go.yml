@@ -9,14 +9,16 @@ on:
 jobs:
 
   build:
-    name: Build
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: [ '1.13', '1.12' ]
+    name: Go ${{ matrix.go }}
     steps:
-
     - name: Set up Go 1.x
       uses: actions/setup-go@v2
       with:
-        go-version: ^1.13
+        go-version: ${{ matrix.go }}
       id: go
 
     - name: Check out code into the Go module directory
@@ -27,7 +29,9 @@ jobs:
         go get -v -t -d ./...
         
     - name: Golint
-      run: golint -set_exit_status $(go list ./... | grep -v /vendor/)
+      uses: grandcolline/golang-github-actions@v1.1.0
+      with:
+        run: lint
 
     - name: Test
-      run: go test -race -v -p 1 ./...
+      run: go test -race -v ./...
