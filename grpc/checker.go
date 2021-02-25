@@ -22,6 +22,7 @@ func CheckHealth(addr, name string) error {
 	if err != nil {
 		return err
 	}
+	defer conn.Close()
 
 	timeoutDuration := time.Second
 	ctx2, cancel2 := context.WithTimeout(context.Background(), timeoutDuration)
@@ -67,6 +68,7 @@ func CheckReady(addr, name string) error {
 	if err != nil {
 		return err
 	}
+	defer conn.Close()
 
 	timeoutDuration := time.Second
 	ctx2, cancel2 := context.WithTimeout(context.Background(), timeoutDuration)
