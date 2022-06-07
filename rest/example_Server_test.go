@@ -81,7 +81,7 @@ func ExampleServer_Start() {
 
 	//starts health server as sidecar with the shared errors stream with the main server, it could be also started as a part of the file server
 	startHealthServerHTTP := func(ctx context.Context, errStream errs.ErrStream, targetPort, maxErrorsCount int) {
-		//we initialise errors listener which will report bad health if errStream will receive more than 1 error per minute
+		//we start errors listener which will report bad health if errStream will receive more than 1 error per minute
 		healthChecker := health.NewErrsListener(maxErrorsCount, time.Minute, errStream)
 		go healthChecker.Start(ctx)
 
@@ -205,7 +205,7 @@ func (dm *DBMock) Insert() error {
 }
 
 //Cache simulates a backend which is always healthy
-type Cache struct {}
+type Cache struct{}
 
 //Ping simulates another health check which returns error if service is not available
 func (c *Cache) Ping() error {
@@ -305,27 +305,27 @@ func ExampleServer_NewReadyHandler() {
 	//	}
 	//}
 
-	buildReadyHandler := func (db *DBMock, cache *Cache) http.Handler {
+	buildReadyHandler := func(db *DBMock, cache *Cache) http.Handler {
 		//we create our ready checks against db and cache so client API cannot be ready if dependant services are still pending
 		readyChecks := []ready.Test{
-	{
-		TestFunc: func() error {
-		isHealthy := db.IsAlive()
-		if !isHealthy {
-		return errors.New("db is not ready yet")
-	}
+			{
+				TestFunc: func() error {
+					isHealthy := db.IsAlive()
+					if !isHealthy {
+						return errors.New("db is not ready yet")
+					}
 
-		return nil
-	},
-		Name: "DB Ready Check",
-	},
-	{
-		TestFunc: func() error {
-		return cache.Ping()
-	},
-		Name: "Cache Ready Check",
-	},
-	}
+					return nil
+				},
+				Name: "DB Ready Check",
+			},
+			{
+				TestFunc: func() error {
+					return cache.Ping()
+				},
+				Name: "Cache Ready Check",
+			},
+		}
 
 		readyChecker := ready.NewTestChecker(readyChecks, 1, time.Millisecond, sleep.RuntimeSleeper{})
 		readyHTTPHandler := NewReadyHandler(time.Second, readyChecker)
@@ -334,21 +334,21 @@ func ExampleServer_NewReadyHandler() {
 	}
 
 	//starts simulated client API server, in this case ready check will be part of the main server
-	startClientAPIHTTP := func (db *DBMock, cache *Cache, readyHandler http.Handler) *httptest.Server {
+	startClientAPIHTTP := func(db *DBMock, cache *Cache, readyHandler http.Handler) *httptest.Server {
 		handleFunc := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/clients" {
-		clientAPI := ClientAPI{DB: db, Cache: cache}
-		clientAPI.ServeHTTP(rw, r)
-		return
-	}
+			if r.URL.Path == "/clients" {
+				clientAPI := ClientAPI{DB: db, Cache: cache}
+				clientAPI.ServeHTTP(rw, r)
+				return
+			}
 
-		if r.URL.Path == "/readyz" {
-		readyHandler.ServeHTTP(rw, r)
-		return
-	}
+			if r.URL.Path == "/readyz" {
+				readyHandler.ServeHTTP(rw, r)
+				return
+			}
 
-		rw.WriteHeader(http.StatusNotFound)
-	})
+			rw.WriteHeader(http.StatusNotFound)
+		})
 		baseSrv := httptest.NewUnstartedServer(handleFunc)
 		baseSrv.Start()
 

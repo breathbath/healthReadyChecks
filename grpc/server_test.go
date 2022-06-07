@@ -11,9 +11,9 @@ import (
 )
 
 type healthCheckerMock struct {
-	isHealthy bool
+	isHealthy       bool
 	isHealthyReason string
-	subscrF func(reason string)
+	subscrF         func(reason string)
 }
 
 //IsHealthy health.Checker implementation
@@ -28,7 +28,7 @@ func (hcm *healthCheckerMock) SubscribeToUnhealthyChange(sf func(reason string))
 
 type readyCheckerMock struct {
 	isReady bool
-	err error
+	err     error
 }
 
 //IsReady ready.Checker implementation
@@ -37,7 +37,7 @@ func (rcm readyCheckerMock) IsReady(ctx context.Context) (isReady bool, err erro
 }
 
 type watchServer struct {
-	err error
+	err   error
 	resps []*healthProto.HealthCheckResponse
 	grpc.ServerStream
 }
@@ -110,7 +110,7 @@ func TestHealthFailure(t *testing.T) {
 func TestReadySuccess(t *testing.T) {
 	rcm := readyCheckerMock{
 		isReady: true,
-		err: nil,
+		err:     nil,
 	}
 	s := Server{
 		ReadyChecker: rcm,
@@ -131,7 +131,7 @@ func TestReadySuccess(t *testing.T) {
 func TestNotReady(t *testing.T) {
 	rcm := readyCheckerMock{
 		isReady: false,
-		err: nil,
+		err:     nil,
 	}
 	s := Server{
 		ReadyChecker: rcm,
@@ -152,7 +152,7 @@ func TestNotReady(t *testing.T) {
 func TestReadyError(t *testing.T) {
 	rcm := readyCheckerMock{
 		isReady: false,
-		err: errors.New("ready failure"),
+		err:     errors.New("ready failure"),
 	}
 	s := Server{
 		ReadyChecker: rcm,

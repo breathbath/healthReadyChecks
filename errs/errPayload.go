@@ -6,7 +6,7 @@ import (
 
 //ErrPayload info about error and the time of appearance
 type ErrPayload struct {
-	Err error
+	Err       error
 	Timestamp int64
 }
 
@@ -22,7 +22,7 @@ func NewErrStream(buffer int) ErrStream {
 //Send wraps sending to err channel
 func (es ErrStream) Send(err error) {
 	ep := ErrPayload{
-		Err: err,
+		Err:       err,
 		Timestamp: time.Now().UTC().Unix(),
 	}
 	es <- ep

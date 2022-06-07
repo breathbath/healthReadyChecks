@@ -19,7 +19,7 @@ type Checker interface {
 //Test will wrap readiness func
 type Test struct {
 	TestFunc func() error
-	Name string
+	Name     string
 }
 
 type result struct {
@@ -30,10 +30,10 @@ type result struct {
 
 //TestChecker ready checks are based on the []Test collection where tests are run in parallel
 type TestChecker struct {
-	tests []Test
-	maxRetries int
+	tests         []Test
+	maxRetries    int
 	sleepInterval time.Duration
-	sleeper sleep.Sleeper
+	sleeper       sleep.Sleeper
 }
 
 //NewTestChecker constructor, will try maxRetries and sleep sleepInterval with the sleep.Sleeper before failing ready check
@@ -62,13 +62,13 @@ func (rc TestChecker) IsReady(ctx context.Context) (isReady bool, err error) {
 	errs := make([]string, 0, len(rc.tests))
 	for {
 		select {
-		case <- ctx.Done():
+		case <-ctx.Done():
 			return false, errors.New("ready tests failed due to the context timeout")
-		case res := <- resultChan:
+		case res := <-resultChan:
 			if !res.isReady {
 				errs = append(errs, fmt.Sprintf("Readiness probe failed for %s: %v", res.test.Name, res.err))
 			}
-		case <- allDone:
+		case <-allDone:
 			if len(errs) == 0 {
 				return true, nil
 			}

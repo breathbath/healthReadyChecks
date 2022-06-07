@@ -32,7 +32,6 @@ func TestHealthThreshold(t *testing.T) {
 		assert.NoError(t, err)
 	}(port, ctx, es)
 
-
 	//give time for server to start
 	time.Sleep(time.Millisecond * 500)
 
@@ -142,7 +141,7 @@ func TestNotEquippedServer(t *testing.T) {
 	port := portToUse + 4
 	hs := Server{}
 	err := hs.Start(context.Background(), port)
-	assert.EqualError(t, err, "neither ready nor health logic was initialised")
+	assert.EqualError(t, err, "neither ready nor health checks were started")
 }
 
 func callAPI(addr string) (*http.Response, error) {

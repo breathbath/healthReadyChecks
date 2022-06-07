@@ -38,13 +38,12 @@ func TestCheckerSuccess(t *testing.T) {
 	assert.False(t, sleeper.WasTriggered)
 }
 
-
 func TestCheckerFailure(t *testing.T) {
 	sleeper := sleep.NewSleeperMock()
 	checker := NewTestChecker([]Test{
 		{
 			TestFunc: func() error {
-				return errors.New("Some error")
+				return errors.New("some error")
 			},
 			Name: "TestCheckerFailure",
 		},
@@ -56,7 +55,7 @@ func TestCheckerFailure(t *testing.T) {
 
 	isReady, err := checker.IsReady(context.Background())
 	assert.False(t, isReady)
-	assert.EqualError(t, err, "Readiness probe failed for TestCheckerFailure: Some error")
+	assert.EqualError(t, err, "Readiness probe failed for TestCheckerFailure: some error")
 	assert.False(t, sleeper.WasTriggered)
 }
 
@@ -66,13 +65,13 @@ func TestMultiCheckerFailure(t *testing.T) {
 	checker := NewTestChecker([]Test{
 		{
 			TestFunc: func() error {
-				return errors.New("Some error 1")
+				return errors.New("some error 1")
 			},
 			Name: "TestMultiCheckerFailure1",
 		},
 		{
 			TestFunc: func() error {
-				return errors.New("Some error 2")
+				return errors.New("some error 2")
 			},
 			Name: "TestMultiCheckerFailure2",
 		},
@@ -86,8 +85,8 @@ func TestMultiCheckerFailure(t *testing.T) {
 	assert.False(t, isReady)
 	assert.Error(t, err)
 	if err != nil {
-		assert.Contains(t, err.Error(), "Readiness probe failed for TestMultiCheckerFailure1: Some error 1")
-		assert.Contains(t, err.Error(), "Readiness probe failed for TestMultiCheckerFailure2: Some error 2")
+		assert.Contains(t, err.Error(), "Readiness probe failed for TestMultiCheckerFailure1: some error 1")
+		assert.Contains(t, err.Error(), "Readiness probe failed for TestMultiCheckerFailure2: some error 2")
 	}
 	assert.False(t, sleeper.WasTriggered)
 }
@@ -147,7 +146,7 @@ func TestSleepAndRepeatOnFailure(t *testing.T) {
 	assert.False(t, isReady)
 	assert.True(t, sleeper.WasTriggered)
 	assert.Equal(t, time.Second, sleeper.TriggeredSleepDuration)
-	assert.Equal(t,2, sleeper.TriggerCount)
+	assert.Equal(t, 2, sleeper.TriggerCount)
 }
 
 func TestWaitingTimeout(t *testing.T) {

@@ -23,7 +23,7 @@ type Server struct {
 	isWithHealth  bool
 }
 
-//WithHealth returns Server with initialised health functionality
+//WithHealth returns Server with health functionality
 func WithHealth(s Server, healthChecker health.Checker) Server {
 	s.healthChecker = healthChecker
 	s.isWithHealth = true
@@ -31,7 +31,7 @@ func WithHealth(s Server, healthChecker health.Checker) Server {
 	return s
 }
 
-//WithReady returns Server with initialised ready functionality
+//WithReady returns Server with ready functionality
 func WithReady(s Server, readyChecker ready.Checker, readyTimeout time.Duration) Server {
 	s.readyChecker = readyChecker
 	s.readyTimeout = readyTimeout
@@ -43,7 +43,7 @@ func WithReady(s Server, readyChecker ready.Checker, readyTimeout time.Duration)
 //Start starts health or/and ready server if they were initialized, if not returns an error
 func (s Server) Start(ctx context.Context, targetPort int) error {
 	if !s.isWithReady && !s.isWithHealth {
-		return errors.New("neither ready nor health logic was initialised")
+		return errors.New("neither ready nor health checks were started")
 	}
 	router := mux.NewRouter().StrictSlash(false)
 
@@ -81,7 +81,7 @@ func (s Server) Start(ctx context.Context, targetPort int) error {
 }
 
 //NewReadyHandler gives http.Handler implementation for readiness checks
-func NewReadyHandler(readyTimeout time.Duration, readyChecker ready.Checker) http.Handler{
+func NewReadyHandler(readyTimeout time.Duration, readyChecker ready.Checker) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		readyCtx, cancelReady := context.WithTimeout(context.Background(), readyTimeout)
 		defer cancelReady()

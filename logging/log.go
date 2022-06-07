@@ -23,7 +23,7 @@ func SetLogger(l Logger) {
 }
 
 //NullLogger pretends to log but in fact just does nothing
-type NullLogger struct {}
+type NullLogger struct{}
 
 //DebugF Logger interface implementation
 func (dl NullLogger) DebugF(template string, args ...interface{}) {
@@ -42,24 +42,24 @@ func (dl NullLogger) InfoF(template string, args ...interface{}) {
 }
 
 //StdoutLogger logs to a standard library
-type StdoutLogger struct {}
+type StdoutLogger struct{}
 
 //DebugF Logger interface implementation
 func (dl StdoutLogger) DebugF(template string, args ...interface{}) {
-	log.Printf("DEBUG: " + template, args...)
+	log.Printf("DEBUG: "+template, args...)
 }
 
 //ErrorF Logger interface implementation
 func (dl StdoutLogger) ErrorF(template string, args ...interface{}) {
-	log.Printf("ERR: " + template, args...)
+	log.Printf("ERR: "+template, args...)
 }
 
 //WarnF Logger interface implementation
 func (dl StdoutLogger) WarnF(template string, args ...interface{}) {
-	log.Printf("WARN: " + template, args...)
+	log.Printf("WARN: "+template, args...)
 }
 
 //InfoF Logger interface implementation
 func (dl StdoutLogger) InfoF(template string, args ...interface{}) {
-	log.Printf("INFO: " + template, args...)
+	log.Printf("INFO: "+template, args...)
 }

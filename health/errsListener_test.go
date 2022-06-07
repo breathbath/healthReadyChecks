@@ -14,33 +14,33 @@ func TestLessAndManyErrors(t *testing.T) {
 	errStream := errs.NewErrStream(0)
 	lis := NewErrsListener(1, time.Minute, errStream)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond * 100)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
 	defer cancel()
 
 	go lis.Start(ctx)
 
 	assert.Equal(t, "", lis.unhealthyReason)
 
-	errStream.Send(errors.New("Some err1"))
+	errStream.Send(errors.New("some err1"))
 
 	isHealthy, unhealthyReason := lis.IsHealthy()
 	assert.True(t, isHealthy)
 	assert.Equal(t, "", unhealthyReason)
 
-	errStream.Send(errors.New("Some err2"))
+	errStream.Send(errors.New("some err2"))
 
 	<-ctx.Done()
 
 	isHealthy, unhealthyReason = lis.IsHealthy()
 	assert.False(t, isHealthy)
-	assert.Equal(t, fmt.Sprintf("Too many critical errors 2 in the last minute %d, last error: Some err2", lis.firstErrorTimestamp), unhealthyReason)
+	assert.Equal(t, fmt.Sprintf("Too many critical errors 2 in the last minute %d, last error: some err2", lis.firstErrorTimestamp), unhealthyReason)
 }
 
 func TestSendingEmptyErrors(t *testing.T) {
 	errStream := errs.NewErrStream(0)
 	l := NewErrsListener(1, time.Minute, errStream)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond * 10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*10)
 	defer cancel()
 
 	go l.Start(ctx)
@@ -57,24 +57,38 @@ func TestHealthSubscription(t *testing.T) {
 	errStream := errs.NewErrStream(0)
 	l := NewErrsListener(1, time.Minute, errStream)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond * 100)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
 	defer cancel()
-	go l.Start(ctx)
 
-	eventStream := []string{}
+	receiveErrsChan := make(chan string, 3)
 	l.SubscribeToUnhealthyChange(func(reason string) {
-		eventStream = append(eventStream, reason)
+		receiveErrsChan <- reason
 	})
 
-	errStream.Send(nil)
+	go l.Start(ctx)
+	go func() {
+		errStream.Send(nil)
+		errStream.Send(errors.New("Some err3"))
+		errStream.Send(errors.New("Some err4"))
+	}()
 
-	errStream.Send(errors.New("Some err3"))
-	assert.Equal(t, []string{}, eventStream)
-
-	errStream.Send(errors.New("Some err4"))
+	eventStream := consumeErrStream(ctx, receiveErrsChan)
 
 	<-ctx.Done()
 
 	expectedErrText := fmt.Sprintf("Too many critical errors 2 in the last minute %d, last error: Some err4", l.firstErrorTimestamp)
 	assert.Equal(t, []string{expectedErrText}, eventStream)
+}
+
+func consumeErrStream(ctx context.Context, sourceStream chan string) []string {
+	eventStream := make([]string, 0)
+
+	for {
+		select {
+		case event := <-sourceStream:
+			eventStream = append(eventStream, event)
+		case <-ctx.Done():
+			return eventStream
+		}
+	}
 }
