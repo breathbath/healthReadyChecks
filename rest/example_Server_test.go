@@ -90,7 +90,7 @@ func ExampleServer_Start() {
 
 		go func() {
 			if err := srv.Start(ctx, targetPort); err != nil {
-				log.Fatal(err)
+				log.Println(err)
 			}
 		}()
 	}
@@ -335,7 +335,7 @@ func Example_newReadyHandler() {
 	}
 
 	// starts simulated client API server, in this case ready check will be part of the main server
-	startClientAPIHTTP := func(db *DBMock, cache *Cache, readyHandler http.Handler) *httptest.Server {
+	createStartedServer := func(db *DBMock, cache *Cache, readyHandler http.Handler) *httptest.Server {
 		handleFunc := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/clients" {
 				clientAPI := ClientAPI{DB: db, Cache: cache}
@@ -361,18 +361,20 @@ func Example_newReadyHandler() {
 
 	readyHandler := buildReadyHandler(db, cache)
 
-	srv := startClientAPIHTTP(db, cache, readyHandler)
+	srv := createStartedServer(db, cache, readyHandler)
+	defer srv.Close()
+
 	apiAddr := srv.Listener.Addr().String()
 
 	resp1, err1 := http.Get("http://" + apiAddr + "/readyz")
 	if err1 != nil {
-		panic(err1)
+		fmt.Printf("fail get1: %v\n", err1)
 	}
 	fmt.Printf("1st ready check, client api should not be ready as DBMock isn't healthy yet: I am not ready: %v\n", resp1.StatusCode != 200)
 
 	resp2, err2 := http.Get("http://" + apiAddr + "/readyz")
 	if err2 != nil {
-		panic(err2)
+		fmt.Printf("fail get2: %v\n", err2)
 	}
 	fmt.Printf("2nd ready check, client api should be ready as DBMock is healthy and Cache is healthy always: I am ready: %v\n", resp2.StatusCode == 200)
 
