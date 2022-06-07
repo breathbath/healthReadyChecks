@@ -4,19 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/breathbath/healthReadyChecks/logging"
-	"github.com/breathbath/healthReadyChecks/sleep"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/breathbath/healthReadyChecks/logging"
+	"github.com/breathbath/healthReadyChecks/sleep"
 )
 
-//Checker abstracts readiness check behavior
+// Checker abstracts readiness check behavior
 type Checker interface {
 	IsReady(ctx context.Context) (isReady bool, err error)
 }
 
-//Test will wrap readiness func
+// Test will wrap readiness func
 type Test struct {
 	TestFunc func() error
 	Name     string
@@ -28,7 +29,7 @@ type result struct {
 	err     error
 }
 
-//TestChecker ready checks are based on the []Test collection where tests are run in parallel
+// TestChecker ready checks are based on the []Test collection where tests are run in parallel
 type TestChecker struct {
 	tests         []Test
 	maxRetries    int
@@ -36,12 +37,12 @@ type TestChecker struct {
 	sleeper       sleep.Sleeper
 }
 
-//NewTestChecker constructor, will try maxRetries and sleep sleepInterval with the sleep.Sleeper before failing ready check
+// NewTestChecker constructor, will try maxRetries and sleep sleepInterval with the sleep.Sleeper before failing ready check
 func NewTestChecker(tests []Test, maxRetries int, sleepInterval time.Duration, sleeper sleep.Sleeper) TestChecker {
 	return TestChecker{tests: tests, maxRetries: maxRetries, sleepInterval: sleepInterval, sleeper: sleeper}
 }
 
-//IsReady readiness implementation
+// IsReady readiness implementation
 func (rc TestChecker) IsReady(ctx context.Context) (isReady bool, err error) {
 	logging.L.DebugF("Will execute ready scripts")
 	wg := &sync.WaitGroup{}

@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+
 	"github.com/breathbath/healthReadyChecks/health"
 	"github.com/breathbath/healthReadyChecks/logging"
 	readyProto "github.com/breathbath/healthReadyChecks/protos/go"
@@ -11,26 +12,26 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-//GRPCHealthName health check id
+// GRPCHealthName health check id
 const GRPCHealthName = "grpc.health.v1.GRPCHealth"
 
-//GRPCReadyName ready check id
+// GRPCReadyName ready check id
 const GRPCReadyName = "grpc.health.v1.GRPCReady"
 
-//Server implements the https://github.com/grpc/grpc/blob/master/doc/health-checking.md health checking protocol
+// Server implements the https://github.com/grpc/grpc/blob/master/doc/health-checking.md health checking protocol
 type Server struct {
 	HealthChecker health.Checker
 	ReadyChecker  ready.Checker
 }
 
-//Check implementation of pull model for the health status
+// Check implementation of pull model for the health status
 func (s Server) Check(ctx context.Context, req *healthProto.HealthCheckRequest) (*healthProto.HealthCheckResponse, error) {
 	return s.buildHealthResponse(req)
 }
 
-//Watch implementation of push model for the health status changes
+// Watch implementation of push model for the health status changes
 func (s Server) Watch(req *healthProto.HealthCheckRequest, watcher healthProto.Health_WatchServer) error {
-	//todo make GRPCHealthName dynamic if required by clients
+	// todo make GRPCHealthName dynamic if required by clients
 	if req.Service != "" && req.Service != GRPCHealthName {
 		return status.Error(codes.NotFound, "unknown service: "+req.Service+" expected name is "+GRPCHealthName)
 	}
@@ -50,9 +51,9 @@ func (s Server) Watch(req *healthProto.HealthCheckRequest, watcher healthProto.H
 	return nil
 }
 
-//Ready implementing ready test
+// Ready implementing ready test
 func (s Server) Ready(ctx context.Context, req *readyProto.ReadyRequest) (*readyProto.ReadyResponse, error) {
-	//todo make GRPCReadyName dynamic if required by clients
+	// todo make GRPCReadyName dynamic if required by clients
 	if req.Service != "" && req.Service != GRPCReadyName {
 		return nil, status.Error(codes.NotFound, "unknown service: "+req.Service+" expected name is "+GRPCReadyName)
 	}

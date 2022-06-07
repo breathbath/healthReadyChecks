@@ -3,13 +3,14 @@ package health
 import (
 	"context"
 	"fmt"
-	"github.com/breathbath/healthReadyChecks/errs"
-	"github.com/breathbath/healthReadyChecks/logging"
 	"sync"
 	"time"
+
+	"github.com/breathbath/healthReadyChecks/errs"
+	"github.com/breathbath/healthReadyChecks/logging"
 )
 
-//ErrsListener implements health checks based on the critical amount of errors per time unit
+// ErrsListener implements health checks based on the critical amount of errors per time unit
 type ErrsListener struct {
 	errs                        errs.ErrStream
 	unhealthyReason             string
@@ -21,7 +22,7 @@ type ErrsListener struct {
 	timeUnit                    time.Duration
 }
 
-//NewErrsListener constructor for ErrsListener
+// NewErrsListener constructor for ErrsListener
 func NewErrsListener(maxErrsPerTime int, timeUnit time.Duration, errChan errs.ErrStream) *ErrsListener {
 	return &ErrsListener{
 		errs:                        errChan,
@@ -35,7 +36,7 @@ func NewErrsListener(maxErrsPerTime int, timeUnit time.Duration, errChan errs.Er
 	}
 }
 
-//Start starts listening
+// Start starts listening
 func (l *ErrsListener) Start(ctx context.Context) {
 	defer func() {
 		logging.L.DebugF("Exiting health listener")
@@ -85,15 +86,15 @@ func (l *ErrsListener) isTooManyErrors() bool {
 	return l.currentErrorsCountPerMinute > l.maxErrsPerTime
 }
 
-//IsHealthy returns health check result
-func (l *ErrsListener) IsHealthy() (bool, string) {
+// IsHealthy returns health check result
+func (l *ErrsListener) IsHealthy() (isHealthy bool, unhealthyReason string) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
 	return l.unhealthyReason == "", l.unhealthyReason
 }
 
-//SubscribeToUnhealthyChange accepts the callback which will be executed on unhealthy status change
+// SubscribeToUnhealthyChange accepts the callback which will be executed on unhealthy status change
 func (l *ErrsListener) SubscribeToUnhealthyChange(sf func(reason string)) {
 	l.lock.Lock()
 	defer l.lock.Unlock()

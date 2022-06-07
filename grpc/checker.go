@@ -3,16 +3,17 @@ package grpc
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/breathbath/healthReadyChecks/logging"
 	readyProto "github.com/breathbath/healthReadyChecks/protos/go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	healthProto "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
-	"time"
 )
 
-//CheckHealth triggers a health check against health GRPC
+// CheckHealth triggers a health check against health GRPC
 func CheckHealth(addr, name string) error {
 	logging.L.DebugF("Will check health of %s at %s", name, addr)
 
@@ -58,7 +59,7 @@ func CheckHealth(addr, name string) error {
 	return nil
 }
 
-//CheckReady triggers a ready check against ready GRPC
+// CheckReady triggers a ready check against ready GRPC
 func CheckReady(addr, name string) error {
 	logging.L.DebugF("Will check ready of %s at %s", name, addr)
 

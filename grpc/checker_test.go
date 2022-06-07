@@ -2,13 +2,14 @@ package grpc
 
 import (
 	"fmt"
+	"net"
+	"testing"
+	"time"
+
 	readyProto "github.com/breathbath/healthReadyChecks/protos/go"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	healthProto "google.golang.org/grpc/health/grpc_health_v1"
-	"net"
-	"testing"
-	"time"
 )
 
 func TestHealthChecker(t *testing.T) {
@@ -45,7 +46,7 @@ func TestHealthCheckerFail(t *testing.T) {
 	defer baseSrv.Stop()
 
 	err = CheckHealth(address, "some health")
-	assert.EqualError(t, err, fmt.Sprintf(`GRPC Health client received an unhealthy status from the server some health: "%s"`, healthProto.HealthCheckResponse_NOT_SERVING))
+	assert.EqualError(t, err, fmt.Sprintf(`GRPC Health client received an unhealthy status from the server some health: %q`, healthProto.HealthCheckResponse_NOT_SERVING))
 }
 
 func TestHealthCheckerWrongServerImplementation(t *testing.T) {

@@ -1,19 +1,20 @@
 package sleep
 
 import (
-	"github.com/breathbath/healthReadyChecks/logging"
 	"time"
+
+	"github.com/breathbath/healthReadyChecks/logging"
 )
 
-//Sleeper abstract sleeping logic
+// Sleeper abstract sleeping logic
 type Sleeper interface {
 	Sleep(t time.Duration)
 }
 
-//RuntimeSleeper real sleeper implementation
+// RuntimeSleeper real sleeper implementation
 type RuntimeSleeper struct{}
 
-//Sleep implements sleeping logic
+// Sleep implements sleeping logic
 func (rs RuntimeSleeper) Sleep(t time.Duration) {
 	logging.L.InfoF("Will sleep %v", t)
 	time.Sleep(t)

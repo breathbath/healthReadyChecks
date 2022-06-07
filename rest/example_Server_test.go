@@ -4,24 +4,25 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/breathbath/healthReadyChecks/errs"
-	"github.com/breathbath/healthReadyChecks/health"
-	"github.com/breathbath/healthReadyChecks/ready"
-	"github.com/breathbath/healthReadyChecks/sleep"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"time"
+
+	"github.com/breathbath/healthReadyChecks/errs"
+	"github.com/breathbath/healthReadyChecks/health"
+	"github.com/breathbath/healthReadyChecks/ready"
+	"github.com/breathbath/healthReadyChecks/sleep"
 )
 
-//CloudStorageWriterMock simulates writing data to a cloud storage
+// CloudStorageWriterMock simulates writing data to a cloud storage
 type CloudStorageWriterMock struct {
 	attemptsCount int
 }
 
-//Write simulates writing function which will after 1 attempts simulating storage exhaustion
+// Write simulates writing function which will after 1 attempts simulating storage exhaustion
 func (cswm *CloudStorageWriterMock) Write(payload []byte) error {
 	cswm.attemptsCount++
 	if cswm.attemptsCount > 1 {
@@ -31,15 +32,15 @@ func (cswm *CloudStorageWriterMock) Write(payload []byte) error {
 	return nil
 }
 
-//FileStoreAPI simulates a http API to save files in a cloud storage
+// FileStoreAPI simulates a http API to save files in a cloud storage
 type FileStorageAPI struct {
 	storage   *CloudStorageWriterMock
 	errStream errs.ErrStream
 }
 
-//ServeHTTP implements http.Handler interface
+// ServeHTTP implements http.Handler interface
 func (fsa FileStorageAPI) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	bodyBytes, _ := ioutil.ReadAll(r.Body)
+	bodyBytes, _ := io.ReadAll(r.Body)
 	err := fsa.storage.Write(bodyBytes)
 	if err != nil {
 		fsa.errStream.Send(err)
@@ -48,14 +49,14 @@ func (fsa FileStorageAPI) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 // This shows how to start health rest server as a sidecar and consume errors from a shared error stream
 func ExampleServer_Start() {
-	//previous declarations
-	////CloudStorageWriterMock simulates writing data to a cloud storage
-	//type CloudStorageWriterMock struct {
+	// previous declarations
+	// //CloudStorageWriterMock simulates writing data to a cloud storage
+	// type CloudStorageWriterMock struct {
 	//	attemptsCount int
-	//}
+	// }
 	//
-	////Write simulates writing function which will after 1 attempts simulating storage exhaustion
-	//func (cswm *CloudStorageWriterMock) Write(payload []byte) error {
+	// //Write simulates writing function which will after 1 attempts simulating storage exhaustion
+	// func (cswm *CloudStorageWriterMock) Write(payload []byte) error {
 	//	cswm.attemptsCount++
 	//	if cswm.attemptsCount > 1 {
 	//	return errors.New("storage exhausted")
@@ -65,13 +66,13 @@ func ExampleServer_Start() {
 	//}
 	//
 	////FileStoreAPI simulates a http API to save files in a cloud storage
-	//type FileStorageAPI struct {
+	// type FileStorageAPI struct {
 	//	storage *CloudStorageWriterMock
 	//	errStream errs.ErrStream
 	//}
 	//
 	////ServeHTTP implements http.Handler interface
-	//func (fsa FileStorageAPI) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	// func (fsa FileStorageAPI) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	//	bodyBytes, _ := ioutil.ReadAll(r.Body)
 	//	err := fsa.storage.Write(bodyBytes)
 	//	if err != nil {
@@ -79,9 +80,9 @@ func ExampleServer_Start() {
 	//	}
 	//}
 
-	//starts health server as sidecar with the shared errors stream with the main server, it could be also started as a part of the file server
+	// starts health server as sidecar with the shared errors stream with the main server, it could be also started as a part of the file server
 	startHealthServerHTTP := func(ctx context.Context, errStream errs.ErrStream, targetPort, maxErrorsCount int) {
-		//we start errors listener which will report bad health if errStream will receive more than 1 error per minute
+		// we start errors listener which will report bad health if errStream will receive more than 1 error per minute
 		healthChecker := health.NewErrsListener(maxErrorsCount, time.Minute, errStream)
 		go healthChecker.Start(ctx)
 
@@ -94,7 +95,7 @@ func ExampleServer_Start() {
 		}()
 	}
 
-	//starts simulated file server
+	// starts simulated file server
 	startFileServerHTTP := func(errStream errs.ErrStream) *httptest.Server {
 		cloudStorage := &CloudStorageWriterMock{}
 		apiHandler := FileStorageAPI{
@@ -143,7 +144,7 @@ func ExampleServer_Start() {
 
 	startHealthServerHTTP(ctx, errStream, healthTargetPort, maxErrorsCountPerMinute)
 
-	//we've started server which will try to store posted body data in a simulated cloud storage and will start failing after 1 successful requests which should cause the health failure
+	// we've started server which will try to store posted body data in a simulated cloud storage and will start failing after 1 successful requests which should cause the health failure
 	srv := startFileServerHTTP(errStream)
 	defer srv.Close()
 	fileServerAddress := srv.Listener.Addr().String()
@@ -151,34 +152,34 @@ func ExampleServer_Start() {
 
 	err := sendFileToSave(fileServerAddress)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	resp1, err1 := http.Get(healthServerAddress + "/healthz")
 	if err1 != nil {
-		log.Fatal(err1)
+		panic(err1)
 	}
 	fmt.Printf("1st sending attempt, the server should be healthy: I am healthy %v\n", resp1.StatusCode == 200)
 
 	err = sendFileToSave(fileServerAddress)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	resp2, err2 := http.Get(healthServerAddress + "/healthz")
 	if err2 != nil {
-		log.Fatal(err2)
+		panic(err2)
 	}
 	fmt.Printf("2nd sending attempt, the server should be healthy, as we expect more than 1 error within a minute: I am healthy: %v\n", resp2.StatusCode == 200)
 
 	err = sendFileToSave(fileServerAddress)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	resp3, err3 := http.Get(healthServerAddress + "/healthz")
 	if err3 != nil {
-		log.Fatal(err3)
+		panic(err3)
 	}
 	fmt.Printf("3d sending attempt, the server should not be healthy, as we have 2 errors within a minute: I am not healthy %v\n", resp3.StatusCode != 200)
 
@@ -188,47 +189,47 @@ func ExampleServer_Start() {
 	// 3d sending attempt, the server should not be healthy, as we have 2 errors within a minute: I am not healthy true
 }
 
-//DBMock simulates a db backend which will be available only after 1 connection attempt
+// DBMock simulates a db backend which will be available only after 1 connection attempt
 type DBMock struct {
 	attemptsCount int
 }
 
-//IsAlive simulates health check for a remote db server, if requested for the 2nd time will return true
+// IsAlive simulates health check for a remote db server, if requested for the 2nd time will return true
 func (dm *DBMock) IsAlive() bool {
 	dm.attemptsCount++
 	return dm.attemptsCount > 1
 }
 
-//Insert simulates insertion of new data to db in fact it does nothing as it's just an example
+// Insert simulates insertion of new data to db in fact it does nothing as it's just an example
 func (dm *DBMock) Insert() error {
 	return nil
 }
 
-//Cache simulates a backend which is always healthy
+// Cache simulates a backend which is always healthy
 type Cache struct{}
 
-//Ping simulates another health check which returns error if service is not available
+// Ping simulates another health check which returns error if service is not available
 func (c *Cache) Ping() error {
 	return nil
 }
 
-//Store data in cache
+// Store data in cache
 func (c *Cache) Store() error {
 	return nil
 }
 
-//Read read data from cache
+// Read data from cache
 func (c *Cache) Read() (bool, error) {
 	return true, nil
 }
 
-//ClientAPI simulates the end API server which depends on DBMock and Cache so if they both are not healthy then ClientAPI will fail ready check
+// ClientAPI simulates the end API server which depends on DBMock and Cache so if they both are not healthy then ClientAPI will fail ready check
 type ClientAPI struct {
 	DB    *DBMock
 	Cache *Cache
 }
 
-//ServeHTTP implements http.Handler interface, in fact has no meaning for readiness checks but shows a possible implementation for some db/cache driven http API
+// ServeHTTP implements http.Handler interface, in fact has no meaning for readiness checks but shows a possible implementation for some db/cache driven http API
 func (ca ClientAPI) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	isFound, err := ca.Cache.Read()
 	if err != nil {
@@ -245,51 +246,51 @@ func (ca ClientAPI) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//Shows how to use ready http handler which can be added to any http server as part of internal implementation (vs sidecar mode)
-func ExampleServer_NewReadyHandler() {
-	//having declared models
+// Shows how to use ready http handler which can be added to any http server as part of internal implementation (vs sidecar mode)
+func Example_newReadyHandler() {
+	// having declared models
 	////DBMock simulates a db backend which will be available only after 1 connection attempt
-	//type DBMock struct {
+	// type DBMock struct {
 	//	attemptsCount int
 	//}
 	//
 	////IsAlive simulates health check for a remote db server, if requested for the 2nd time will return true
-	//func (dm *DBMock) IsAlive() bool {
+	// func (dm *DBMock) IsAlive() bool {
 	//	dm.attemptsCount++
 	//	return dm.attemptsCount > 1
 	//}
 	//
 	////Insert simulates insertion of new data to db in fact it does nothing as it's just an example
-	//func (dm *DBMock) Insert() error {
+	// func (dm *DBMock) Insert() error {
 	//	return nil
 	//}
 	//
 	////Cache simulates a backend which is always healthy
-	//type Cache struct {}
+	// type Cache struct {}
 	//
 	////Ping simulates another health check which returns error if service is not available
-	//func (c *Cache) Ping() error {
+	// func (c *Cache) Ping() error {
 	//	return nil
 	//}
 	//
 	////Store data in cache
-	//func (c *Cache) Store() error {
+	// func (c *Cache) Store() error {
 	//	return nil
 	//}
 	//
 	////Read read data from cache
-	//func (c *Cache) Read() (bool, error) {
+	// func (c *Cache) Read() (bool, error) {
 	//	return true, nil
 	//}
 	//
 	////ClientAPI simulates the end API server which depends on DBMock and Cache so if they both are not healthy then ClientAPI will fail ready check
-	//type ClientAPI struct {
+	// type ClientAPI struct {
 	//	DB *DBMock
 	//	Cache *Cache
 	//}
 	//
-	//ServeHTTP implements http.Handler interface, in fact has no meaning for readiness checks but shows a possible implementation for some db/cache driven http API
-	//func (ca ClientAPI) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	// ServeHTTP implements http.Handler interface, in fact has no meaning for readiness checks but shows a possible implementation for some db/cache driven http API
+	// func (ca ClientAPI) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	//	isFound, err := ca.Cache.Read()
 	//	if err != nil {
 	//		log.Panic(err)
@@ -306,7 +307,7 @@ func ExampleServer_NewReadyHandler() {
 	//}
 
 	buildReadyHandler := func(db *DBMock, cache *Cache) http.Handler {
-		//we create our ready checks against db and cache so client API cannot be ready if dependant services are still pending
+		// we create our ready checks against db and cache so client API cannot be ready if dependant services are still pending
 		readyChecks := []ready.Test{
 			{
 				TestFunc: func() error {
@@ -333,7 +334,7 @@ func ExampleServer_NewReadyHandler() {
 		return readyHTTPHandler
 	}
 
-	//starts simulated client API server, in this case ready check will be part of the main server
+	// starts simulated client API server, in this case ready check will be part of the main server
 	startClientAPIHTTP := func(db *DBMock, cache *Cache, readyHandler http.Handler) *httptest.Server {
 		handleFunc := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/clients" {
@@ -365,13 +366,13 @@ func ExampleServer_NewReadyHandler() {
 
 	resp1, err1 := http.Get("http://" + apiAddr + "/readyz")
 	if err1 != nil {
-		log.Fatal(err1)
+		panic(err1)
 	}
 	fmt.Printf("1st ready check, client api should not be ready as DBMock isn't healthy yet: I am not ready: %v\n", resp1.StatusCode != 200)
 
 	resp2, err2 := http.Get("http://" + apiAddr + "/readyz")
 	if err2 != nil {
-		log.Fatal(err2)
+		panic(err2)
 	}
 	fmt.Printf("2nd ready check, client api should be ready as DBMock is healthy and Cache is healthy always: I am ready: %v\n", resp2.StatusCode == 200)
 

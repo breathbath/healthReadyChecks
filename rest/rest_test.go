@@ -4,17 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"net/http"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/breathbath/healthReadyChecks/errs"
 	"github.com/breathbath/healthReadyChecks/health"
 	"github.com/breathbath/healthReadyChecks/logging"
 	"github.com/breathbath/healthReadyChecks/ready"
 	"github.com/breathbath/healthReadyChecks/sleep"
 	"github.com/stretchr/testify/assert"
-	"log"
-	"net/http"
-	"strings"
-	"testing"
-	"time"
 )
 
 func TestHealthThreshold(t *testing.T) {
@@ -29,10 +30,12 @@ func TestHealthThreshold(t *testing.T) {
 
 		hs := WithHealth(Server{}, hc)
 		err := hs.Start(c, p)
-		assert.NoError(t, err)
+		if err != nil {
+			log.Printf("server closing error: %v\n", err)
+		}
 	}(port, ctx, es)
 
-	//give time for server to start
+	// give time for server to start
 	time.Sleep(time.Millisecond * 500)
 
 	es.Send(errors.New("First err"))
@@ -79,10 +82,12 @@ func TestReadySuccess(t *testing.T) {
 		}, 2, time.Second, s)
 		hs := WithReady(Server{}, rc, time.Second)
 		err := hs.Start(c, p)
-		assert.NoError(t, err)
+		if err != nil {
+			log.Printf("failed to close server: %v", err)
+		}
 	}(ctx, port, slepr)
 
-	//give time for server to start
+	// give time for server to start
 	time.Sleep(time.Millisecond * 500)
 
 	addr := fmt.Sprintf("http://127.0.0.1:%d/readyz", port)
@@ -117,10 +122,12 @@ func TestReadyFailure(t *testing.T) {
 		}, 2, time.Second, s)
 		hs := WithReady(Server{}, rc, time.Second)
 		err := hs.Start(c, p)
-		assert.NoError(t, err)
+		if err != nil {
+			log.Printf("failed to close server: %v", err)
+		}
 	}(ctx, port, slepr)
 
-	//give time for server to start
+	// give time for server to start
 	time.Sleep(time.Millisecond * 500)
 
 	addr := fmt.Sprintf("http://127.0.0.1:%d/readyz", port)
@@ -161,12 +168,7 @@ func callAPI(addr string) (*http.Response, error) {
 		return nil, err
 	}
 
-	defer func() {
-		er := resp.Body.Close()
-		if er != nil {
-			log.Fatal(er)
-		}
-	}()
+	defer resp.Body.Close()
 
 	return resp, err
 }

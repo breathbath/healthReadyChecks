@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/breathbath/healthReadyChecks/errs"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/breathbath/healthReadyChecks/errs"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLessAndManyErrors(t *testing.T) {

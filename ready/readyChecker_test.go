@@ -3,10 +3,11 @@ package ready
 import (
 	"context"
 	"errors"
-	"github.com/breathbath/healthReadyChecks/sleep"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/breathbath/healthReadyChecks/sleep"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNoCheckers(t *testing.T) {

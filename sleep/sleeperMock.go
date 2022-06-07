@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-//SleeperMock pretends to be a sleeper for testing
+// SleeperMock pretends to be a sleeper for testing
 type SleeperMock struct {
 	TriggeredSleepDuration time.Duration
 	WasTriggered           bool
@@ -13,7 +13,7 @@ type SleeperMock struct {
 	lock                   sync.Mutex
 }
 
-//NewSleeperMock constructor
+// NewSleeperMock constructor
 func NewSleeperMock() *SleeperMock {
 	return &SleeperMock{
 		WasTriggered:           false,
@@ -23,7 +23,7 @@ func NewSleeperMock() *SleeperMock {
 	}
 }
 
-//Sleep fake sleep implementation
+// Sleep fake sleep implementation
 func (sm *SleeperMock) Sleep(t time.Duration) {
 	sm.lock.Lock()
 	defer sm.lock.Unlock()

@@ -23,3 +23,12 @@ protoc:
 	docker run --name protogen local/protogen
 	docker cp protogen:/home/protos/go ./protos
 	docker rm protogen
+
+.PHONY: lint
+lint:
+	golangci-lint run
+
+.PHONY: fmt
+fmt:
+	 goimports -w .
+	 gofmt -w .

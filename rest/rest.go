@@ -4,17 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/breathbath/healthReadyChecks/health"
 	"github.com/breathbath/healthReadyChecks/logging"
 	"github.com/breathbath/healthReadyChecks/ready"
 	"github.com/gorilla/mux"
-	"net/http"
-	"time"
 )
 
 const portToUse = 9244
 
-//Server wraps health/ready http server implementation
+// Server wraps health/ready http server implementation
 type Server struct {
 	readyChecker  ready.Checker
 	readyTimeout  time.Duration
@@ -23,7 +24,7 @@ type Server struct {
 	isWithHealth  bool
 }
 
-//WithHealth returns Server with health functionality
+// WithHealth returns Server with health functionality
 func WithHealth(s Server, healthChecker health.Checker) Server {
 	s.healthChecker = healthChecker
 	s.isWithHealth = true
@@ -31,7 +32,7 @@ func WithHealth(s Server, healthChecker health.Checker) Server {
 	return s
 }
 
-//WithReady returns Server with ready functionality
+// WithReady returns Server with ready functionality
 func WithReady(s Server, readyChecker ready.Checker, readyTimeout time.Duration) Server {
 	s.readyChecker = readyChecker
 	s.readyTimeout = readyTimeout
@@ -40,7 +41,7 @@ func WithReady(s Server, readyChecker ready.Checker, readyTimeout time.Duration)
 	return s
 }
 
-//Start starts health or/and ready server if they were initialized, if not returns an error
+// Start starts health or/and ready server if they were initialized, if not returns an error
 func (s Server) Start(ctx context.Context, targetPort int) error {
 	if !s.isWithReady && !s.isWithHealth {
 		return errors.New("neither ready nor health checks were started")
@@ -58,14 +59,14 @@ func (s Server) Start(ctx context.Context, targetPort int) error {
 	}
 
 	addr := fmt.Sprintf(":%d", targetPort)
-	httpServer := http.Server{
+	httpServer := &http.Server{
 		Addr:    addr,
 		Handler: router,
 	}
 
 	logging.L.InfoF("Starting health/ready REST server at %s", addr)
 
-	go func(s http.Server, c context.Context) {
+	go func(s *http.Server, c context.Context) {
 		<-c.Done()
 		logging.L.InfoF("Exiting health REST server at %s", addr)
 
@@ -80,7 +81,7 @@ func (s Server) Start(ctx context.Context, targetPort int) error {
 	return httpServer.ListenAndServe()
 }
 
-//NewReadyHandler gives http.Handler implementation for readiness checks
+// NewReadyHandler gives http.Handler implementation for readiness checks
 func NewReadyHandler(readyTimeout time.Duration, readyChecker ready.Checker) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		readyCtx, cancelReady := context.WithTimeout(context.Background(), readyTimeout)
@@ -103,7 +104,7 @@ func NewReadyHandler(readyTimeout time.Duration, readyChecker ready.Checker) htt
 	})
 }
 
-//NewHealthHandler gives http.Handler implementation for health checks
+// NewHealthHandler gives http.Handler implementation for health checks
 func NewHealthHandler(healthChecker health.Checker) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		isHealthy, unhealthyReason := healthChecker.IsHealthy()

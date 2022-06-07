@@ -3,11 +3,12 @@ package grpc
 import (
 	"context"
 	"errors"
+	"testing"
+
 	readyProto "github.com/breathbath/healthReadyChecks/protos/go"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	healthProto "google.golang.org/grpc/health/grpc_health_v1"
-	"testing"
 )
 
 type healthCheckerMock struct {
@@ -16,12 +17,12 @@ type healthCheckerMock struct {
 	subscrF         func(reason string)
 }
 
-//IsHealthy health.Checker implementation
-func (hcm healthCheckerMock) IsHealthy() (bool, string) {
+// IsHealthy health.Checker implementation
+func (hcm healthCheckerMock) IsHealthy() (isHealthy bool, isHealthyReason string) {
 	return hcm.isHealthy, hcm.isHealthyReason
 }
 
-//SubscribeToUnhealthyChange health.Checker implementation
+// SubscribeToUnhealthyChange health.Checker implementation
 func (hcm *healthCheckerMock) SubscribeToUnhealthyChange(sf func(reason string)) {
 	hcm.subscrF = sf
 }
@@ -31,7 +32,7 @@ type readyCheckerMock struct {
 	err     error
 }
 
-//IsReady ready.Checker implementation
+// IsReady ready.Checker implementation
 func (rcm readyCheckerMock) IsReady(ctx context.Context) (isReady bool, err error) {
 	return rcm.isReady, rcm.err
 }
@@ -42,7 +43,7 @@ type watchServer struct {
 	grpc.ServerStream
 }
 
-//Send healthProto.Health_WatchServer interface implementation
+// Send healthProto.Health_WatchServer interface implementation
 func (ws *watchServer) Send(resp *healthProto.HealthCheckResponse) error {
 	ws.resps = append(ws.resps, resp)
 

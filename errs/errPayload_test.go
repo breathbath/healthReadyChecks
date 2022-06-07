@@ -2,9 +2,10 @@ package errs
 
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSendErrStream(t *testing.T) {
